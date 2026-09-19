@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duelo no Varal: Calcinhas, Cuecas e Meias</title>
+    <title>Duelo no Varal: Saloon das Roupas</title>
     <style>
         :root {
             --bg-color: #2b1810;
@@ -91,7 +91,6 @@
             display: block;
         }
 
-        /* Tabuleiro ampliado (4x4) */
         .sock-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -119,13 +118,27 @@
             background-color: #5c3521;
         }
 
-        .scoreboard {
+        .scoreboard-panel {
+            display: flex;
+            justify-content: space-between;
             background: #1a0d08;
-            padding: 10px;
+            padding: 10px 15px;
             border-radius: 6px;
             margin-top: 15px;
             border: 2px solid var(--accent-gold);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .players-list {
+            background: #2b1810;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border: 1px dashed var(--accent-gold);
+            font-size: 0.85rem;
+            max-height: 100px;
+            overflow-y: auto;
         }
 
         .sound-controls {
@@ -143,59 +156,58 @@
         <!-- TELA 1: MENU PRINCIPAL -->
         <div id="screen-menu" class="screen active">
             <h1>🤠 Duelo no Varal 🤠</h1>
-            <p>O jogo de faroeste mais sem noção onde o mistério são as roupas estendidas no varal da cidade!</p>
-            <button class="btn" onclick="showScreen('screen-create')">Criar Sala</button>
-            <br>
-            <button class="btn" onclick="showScreen('screen-join')">Entrar em Sala</button>
+            <p>O jogo de faroeste com roupas íntimas no varal para jogar com a galera!</p>
+            <button class="btn" onclick="showScreen('screen-setup')">Entrar no Saloon</button>
             <div class="sound-controls">
                 <p style="font-size: 0.8rem; opacity: 0.7;">Certifique-se de ter o arquivo <strong>faroeste.mp3</strong> na mesma pasta!</p>
             </div>
         </div>
 
-        <!-- TELA 2: CRIAR SALA -->
-        <div id="screen-create" class="screen">
-            <h1>Criar Sala de Duelo</h1>
-            <p>Escolha o nome secreto da sua sala:</p>
-            <input type="text" id="create-room-name" placeholder="Ex: SaloonDasCalcinhas">
+        <!-- TELA 2: CONFIGURAR NOME E SALA -->
+        <div id="screen-setup" class="screen">
+            <h1>Identificação do Pistoleiro</h1>
+            <p>Como seus parceiros vão te chamar?</p>
+            <input type="text" id="player-name" placeholder="Seu Apelido (Ex: Billy O Limpo)">
+            <p>Qual o nome da sala (para jogar em grupo)?</p>
+            <input type="text" id="room-name" placeholder="Nome da Sala (Ex: RanchoDoChule)">
             <br>
-            <button class="btn" onclick="createRoom()">Iniciar o Varal</button>
-            <br>
-            <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="showScreen('screen-menu')">Voltar</button>
-        </div>
-
-        <!-- TELA 3: ENTRAR NA SALA -->
-        <div id="screen-join" class="screen">
-            <h1>Entrar no Saloon</h1>
-            <p>Digite o nome da sala criada pelo seu comparsa:</p>
-            <input type="text" id="join-room-name" placeholder="Nome da Sala">
-            <br>
-            <button class="btn" onclick="joinRoom()">Entrar na Disputa</button>
+            <button class="btn" onclick="joinGameSession()">Entrar na Disputa</button>
             <br>
             <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="showScreen('screen-menu')">Voltar</button>
         </div>
 
-        <!-- TELA 4: JOGO ROLANDO -->
+        <!-- TELA 3: JOGO ROLANDO -->
         <div id="screen-game" class="screen">
             <h1 id="room-title">Sala: </h1>
-            <p id="game-instruction">Encontre os pares de roupas íntimas antes que o xerife apareça!</p>
+            <p id="game-instruction">Encontre os pares de roupas íntimas e garanta sua pontuação!</p>
             
-            <div class="scoreboard">
-                <span>Pontuação: <strong id="score">0</strong></span> | 
-                <span>Tempo: <strong id="timer">60</strong>s</span>
+            <div class="scoreboard-panel">
+                <div>
+                    <div>Seu Jogador: <strong id="my-name-display" style="color: var(--accent-gold);"></strong></div>
+                    <div>Seus Pontos: <strong id="score">0</strong></div>
+                    <div>Tempo Restante: <strong id="timer">60</strong>s</div>
+                </div>
+                <div style="width: 45%;">
+                    <div style="font-weight: bold; margin-bottom: 2px;">Pistoleiros na Sala:</div>
+                    <div id="players-container" class="players-list">
+                        <!-- Lista de jogadores injetada via JS -->
+                    </div>
+                </div>
             </div>
 
             <div class="sock-grid" id="sockGrid">
                 <!-- Gerado por JS (16 cartas / 8 pares) -->
             </div>
 
-            <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="leaveRoom()">Sair do Duelo</button>
+            <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="leaveRoom()">Sair da Sala</button>
         </div>
 
-        <!-- TELA 5: FIM DE JOGO -->
+        <!-- TELA 4: FIM DE JOGO -->
         <div id="screen-gameover" class="screen">
             <h1>Fim de Duelo! 🌵</h1>
             <p>O varal inteiro voou com a ventania do deserto.</p>
-            <p>Sua pontuação final foi: <strong id="final-score" style="color: var(--accent-gold); font-size: 1.5rem;">0</strong></p>
+            <p>Placar Final da Turma:</p>
+            <div id="final-scoreboard" class="players-list" style="margin-bottom: 15px; max-height: 150px;"></div>
             <button class="btn" onclick="restartGame()">Jogar de Novo</button>
             <br>
             <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="showScreen('screen-menu')">Menu Principal</button>
@@ -203,24 +215,18 @@
     </div>
 
     <script>
+        let playerName = "";
         let currentRoom = "";
         let score = 0;
         let timeLeft = 60;
         let timerInterval;
+        let syncInterval;
         let selectedSock = null;
         let matchedPairs = 0;
         let isChecking = false;
 
-        // Lista diversificada com calcinhas, cuecas, sutiãs e meias
         const laundryTypes = [
-            '🩲', // Cueca box
-            '👙', // Biquíni / Calcinha
-            '👚', // Sutiã / Roupa íntima superior
-            '🧦', // Meia clássica
-            '🩳', // Bermuda de pijama / Cueca samba-cancão
-            '🎀', // Calcinha de renda
-            '⭐🧦', // Meia de xerife
-            '💀🩲'  // Cueca caveira do fora-da-lei
+            '🩲', '👙', '👚', '🧦', '🩳', '🎀', '⭐🧦', '💀🩲'
         ];
 
         function showScreen(screenId) {
@@ -230,36 +236,27 @@
 
         function playMusic() {
             const audio = document.getElementById('farwestAudio');
-            audio.play().catch(e => console.log("Áudio aguardando interação do usuário:", e));
+            audio.play().catch(e => console.log("Áudio aguardando interação:", e));
         }
 
-        function createRoom() {
-            const roomName = document.getElementById('create-room-name').value.trim();
-            if (!roomName) {
-                alert("Por favor, digite um nome para a sala!");
+        function joinGameSession() {
+            playerName = document.getElementById('player-name').value.trim();
+            currentRoom = document.getElementById('room-name').value.trim();
+
+            if (!playerName || !currentRoom) {
+                alert("Por favor, digite seu apelido e o nome da sala!");
                 return;
             }
-            currentRoom = roomName;
-            startGameSession();
-        }
 
-        function joinRoom() {
-            const roomName = document.getElementById('join-room-name').value.trim();
-            if (!roomName) {
-                alert("Por favor, digite o nome da sala para entrar!");
-                return;
-            }
-            currentRoom = roomName;
-            startGameSession();
-        }
-
-        function startGameSession() {
             playMusic();
             document.getElementById('room-title').innerText = "Sala: " + currentRoom;
+            document.getElementById('my-name-display').innerText = playerName;
+            
             showScreen('screen-game');
             initGameVariables();
             buildBoard();
             startTimer();
+            startSync();
         }
 
         function initGameVariables() {
@@ -270,13 +267,13 @@
             isChecking = false;
             document.getElementById('score').innerText = score;
             document.getElementById('timer').innerText = timeLeft;
+            updateLocalStorageScore();
         }
 
         function buildBoard() {
             const grid = document.getElementById('sockGrid');
             grid.innerHTML = '';
             
-            // Pega os 8 tipos diferentes e duplica para formar 16 cartas (8 pares)
             let deck = [...laundryTypes, ...laundryTypes].sort(() => Math.random() - 0.5);
 
             deck.forEach((itemType, index) => {
@@ -308,9 +305,9 @@
                     score += 20;
                     matchedPairs++;
                     document.getElementById('score').innerText = score;
+                    updateLocalStorageScore();
                     isChecking = false;
 
-                    // Se encontrou todos os 8 pares do tabuleiro ampliado, gera um novo conjunto
                     if (matchedPairs === 8) {
                         setTimeout(() => {
                             matchedPairs = 0;
@@ -318,7 +315,6 @@
                         }, 500);
                     }
                 } else {
-                    // Errou o par, vira de volta após um pequeno delay
                     setTimeout(() => {
                         firstCard.innerText = '❓';
                         firstCard.classList.remove('revealed');
@@ -328,6 +324,36 @@
                     }, 700);
                 }
             }
+        }
+
+        function updateLocalStorageScore() {
+            let roomsData = JSON.parse(localStorage.getItem('duelo_meias_rooms')) || {};
+            if (!roomsData[currentRoom]) {
+                roomsData[currentRoom] = {};
+            }
+            roomsData[currentRoom][playerName] = score;
+            localStorage.setItem('duelo_meias_rooms', JSON.stringify(roomsData));
+        }
+
+        function startSync() {
+            clearInterval(syncInterval);
+            syncInterval = setInterval(() => {
+                updateLocalStorageScore();
+                let roomsData = JSON.parse(localStorage.getItem('duelo_meias_rooms')) || {};
+                let roomPlayers = roomsData[currentRoom] || {};
+
+                let container = document.getElementById('players-container');
+                container.innerHTML = '';
+
+                // Ordena por pontuação
+                let sortedPlayers = Object.entries(roomPlayers).sort((a, b) => b[1] - a[1]);
+
+                sortedPlayers.forEach(([name, pts]) => {
+                    let div = document.createElement('div');
+                    div.innerHTML = `🤠 ${name}: <strong>${pts} pts</strong>`;
+                    container.appendChild(div);
+                });
+            }, 1000);
         }
 
         function startTimer() {
@@ -343,12 +369,27 @@
         }
 
         function endGame() {
-            document.getElementById('final-score').innerText = score;
+            clearInterval(syncInterval);
+            let roomsData = JSON.parse(localStorage.getItem('duelo_meias_rooms')) || {};
+            let roomPlayers = roomsData[currentRoom] || {};
+
+            let finalContainer = document.getElementById('final-scoreboard');
+            finalContainer.innerHTML = '';
+
+            let sortedPlayers = Object.entries(roomPlayers).sort((a, b) => b[1] - a[1]);
+            sortedPlayers.forEach(([name, pts], index) => {
+                let div = document.createElement('div');
+                let medal = index === 0 ? '🏆 ' : '';
+                div.innerHTML = `${medal}${name} - <strong>${pts} pontos</strong>`;
+                finalContainer.appendChild(div);
+            });
+
             showScreen('screen-gameover');
         }
 
         function leaveRoom() {
             clearInterval(timerInterval);
+            clearInterval(syncInterval);
             const audio = document.getElementById('farwestAudio');
             audio.pause();
             audio.currentTime = 0;
@@ -356,7 +397,7 @@
         }
 
         function restartGame() {
-            startGameSession();
+            showScreen('screen-setup');
         }
     </script>
 </body>
