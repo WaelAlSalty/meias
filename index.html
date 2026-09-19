@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duelo de Meias: O Grande Desafio do Varal</title>
+    <title>Duelo no Varal: Calcinhas, Cuecas e Meias</title>
     <style>
         :root {
             --bg-color: #2b1810;
@@ -18,7 +18,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -31,24 +31,24 @@
             background-color: var(--panel-bg);
             border: 6px solid var(--border-wood);
             border-radius: 12px;
-            padding: 30px;
+            padding: 20px;
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.7);
             text-align: center;
         }
 
         h1 {
             color: var(--accent-gold);
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
             text-transform: uppercase;
             text-shadow: 2px 2px #000;
         }
 
         p {
-            font-size: 1rem;
-            margin-bottom: 20px;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
         }
 
         .btn {
@@ -91,23 +91,24 @@
             display: block;
         }
 
+        /* Tabuleiro ampliado (4x4) */
         .sock-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin: 20px 0;
+            gap: 10px;
+            margin: 15px 0;
         }
 
         .sock-card {
             background-color: #3d2215;
             border: 3px dashed var(--accent-gold);
             border-radius: 8px;
-            padding: 15px;
+            padding: 10px;
             font-size: 2.2rem;
             cursor: pointer;
             transition: transform 0.2s, background-color 0.2s;
             user-select: none;
-            min-height: 50px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -120,10 +121,11 @@
 
         .scoreboard {
             background: #1a0d08;
-            padding: 15px;
+            padding: 10px;
             border-radius: 6px;
-            margin-top: 20px;
+            margin-top: 15px;
             border: 2px solid var(--accent-gold);
+            font-size: 0.95rem;
         }
 
         .sound-controls {
@@ -140,8 +142,8 @@
 
         <!-- TELA 1: MENU PRINCIPAL -->
         <div id="screen-menu" class="screen active">
-            <h1>🤠 Duelo de Meias 🤠</h1>
-            <p>O jogo de faroeste mais sem noção e divertido para quem tem paranoia com meias perdidas na máquina de lavar!</p>
+            <h1>🤠 Duelo no Varal 🤠</h1>
+            <p>O jogo de faroeste mais sem noção onde o mistério são as roupas estendidas no varal da cidade!</p>
             <button class="btn" onclick="showScreen('screen-create')">Criar Sala</button>
             <br>
             <button class="btn" onclick="showScreen('screen-join')">Entrar em Sala</button>
@@ -153,8 +155,8 @@
         <!-- TELA 2: CRIAR SALA -->
         <div id="screen-create" class="screen">
             <h1>Criar Sala de Duelo</h1>
-            <p>Escolha o nome secreto da sua sala de meias:</p>
-            <input type="text" id="create-room-name" placeholder="Ex: RanchoDoChule">
+            <p>Escolha o nome secreto da sua sala:</p>
+            <input type="text" id="create-room-name" placeholder="Ex: SaloonDasCalcinhas">
             <br>
             <button class="btn" onclick="createRoom()">Iniciar o Varal</button>
             <br>
@@ -175,15 +177,15 @@
         <!-- TELA 4: JOGO ROLANDO -->
         <div id="screen-game" class="screen">
             <h1 id="room-title">Sala: </h1>
-            <p id="game-instruction">Encontre os pares de meias antes que o tempo acabe!</p>
+            <p id="game-instruction">Encontre os pares de roupas íntimas antes que o xerife apareça!</p>
             
             <div class="scoreboard">
                 <span>Pontuação: <strong id="score">0</strong></span> | 
-                <span>Tempo: <strong id="timer">45</strong>s</span>
+                <span>Tempo: <strong id="timer">60</strong>s</span>
             </div>
 
             <div class="sock-grid" id="sockGrid">
-                <!-- Gerado por JS -->
+                <!-- Gerado por JS (16 cartas / 8 pares) -->
             </div>
 
             <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="leaveRoom()">Sair do Duelo</button>
@@ -192,8 +194,8 @@
         <!-- TELA 5: FIM DE JOGO -->
         <div id="screen-gameover" class="screen">
             <h1>Fim de Duelo! 🌵</h1>
-            <p>As meias sumiram na máquina de lavar dimensional.</p>
-            <p>Sua pontuação final de pares certos foi: <strong id="final-score" style="color: var(--accent-gold); font-size: 1.5rem;">0</strong></p>
+            <p>O varal inteiro voou com a ventania do deserto.</p>
+            <p>Sua pontuação final foi: <strong id="final-score" style="color: var(--accent-gold); font-size: 1.5rem;">0</strong></p>
             <button class="btn" onclick="restartGame()">Jogar de Novo</button>
             <br>
             <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="showScreen('screen-menu')">Menu Principal</button>
@@ -203,21 +205,22 @@
     <script>
         let currentRoom = "";
         let score = 0;
-        let timeLeft = 45;
+        let timeLeft = 60;
         let timerInterval;
         let selectedSock = null;
         let matchedPairs = 0;
         let isChecking = false;
 
-        // Diferentes estampas e cores de meias para formar os pares
-        const sockBaseList = ['🧦', '🧦', '🧦', '🧦', '🧦', '🧦'];
-        const sockTypes = [
-            '🔴🧦', // Meia vermelha listrada
-            '🔵🧦', // Meia azul de bolinhas
-            '⭐🧦', // Meia de xerife com estrela
-            '💀🧦', // Meia do fora-da-lei
-            '💚🧦', // Meia verde fedida
-            '💛🧦'  // Meia amarela de ouro
+        // Lista diversificada com calcinhas, cuecas, sutiãs e meias
+        const laundryTypes = [
+            '🩲', // Cueca box
+            '👙', // Biquíni / Calcinha
+            '👚', // Sutiã / Roupa íntima superior
+            '🧦', // Meia clássica
+            '🩳', // Bermuda de pijama / Cueca samba-cancão
+            '🎀', // Calcinha de renda
+            '⭐🧦', // Meia de xerife
+            '💀🩲'  // Cueca caveira do fora-da-lei
         ];
 
         function showScreen(screenId) {
@@ -261,7 +264,7 @@
 
         function initGameVariables() {
             score = 0;
-            timeLeft = 45;
+            timeLeft = 60;
             matchedPairs = 0;
             selectedSock = null;
             isChecking = false;
@@ -273,14 +276,13 @@
             const grid = document.getElementById('sockGrid');
             grid.innerHTML = '';
             
-            // Pega 4 tipos diferentes de meias e duplica para formar 8 cartas (4 pares)
-            let selectedTypes = [...sockTypes].sort(() => Math.random() - 0.5).slice(0, 4);
-            let deck = [...selectedTypes, ...selectedTypes].sort(() => Math.random() - 0.5);
+            // Pega os 8 tipos diferentes e duplica para formar 16 cartas (8 pares)
+            let deck = [...laundryTypes, ...laundryTypes].sort(() => Math.random() - 0.5);
 
-            deck.forEach((sockType, index) => {
+            deck.forEach((itemType, index) => {
                 const card = document.createElement('div');
                 card.classList.add('sock-card');
-                card.dataset.sock = sockType;
+                card.dataset.sock = itemType;
                 card.dataset.index = index;
                 card.innerText = '❓';
                 card.onclick = () => flipCard(card);
@@ -303,13 +305,13 @@
                 selectedSock = null;
 
                 if (firstCard.dataset.sock === secondCard.dataset.sock) {
-                    score += 15;
+                    score += 20;
                     matchedPairs++;
                     document.getElementById('score').innerText = score;
                     isChecking = false;
 
-                    // Se encontrou todos os 4 pares do tabuleiro, gera um novo conjunto
-                    if (matchedPairs === 4) {
+                    // Se encontrou todos os 8 pares do tabuleiro ampliado, gera um novo conjunto
+                    if (matchedPairs === 8) {
                         setTimeout(() => {
                             matchedPairs = 0;
                             buildBoard();
