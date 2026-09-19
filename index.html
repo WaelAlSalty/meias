@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duelo de Meias: O Grande Desafio do Varal</title>
+    <style>
+        :root {
+            --bg-color: #2b1810;
+            --panel-bg: #4a2e1b;
+            --accent-gold: #f4d06f;
+            --text-color: #fdf6e3;
+            --border-wood: #1a0d08;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle, #3d2215 0%, #1a0d08 100%);
+        }
+
+        .container {
+            background-color: var(--panel-bg);
+            border: 6px solid var(--border-wood);
+            border-radius: 12px;
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--accent-gold);
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px #000;
+        }
+
+        p {
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: var(--accent-gold);
+            color: #2b1810;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            text-transform: uppercase;
+            box-shadow: 0 4px #b8973e;
+            transition: all 0.1s ease;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 #b8973e;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            border: 3px solid var(--border-wood);
+            width: 80%;
+            margin-bottom: 15px;
+            text-align: center;
+            background-color: #fdf6e3;
+            color: #2b1810;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .sock-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .sock-card {
+            background-color: #3d2215;
+            border: 3px dashed var(--accent-gold);
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .sock-card:hover {
+            transform: scale(1.05);
+            background-color: #5c3521;
+        }
+
+        .scoreboard {
+            background: #1a0d08;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            border: 2px solid var(--accent-gold);
+        }
+
+        .sound-controls {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- ÁUDIO DE FAROESTE -->
+        <audio id="farwestAudio" src="faroeste.mp3" loop></audio>
+
+        <!-- TELA 1: MENU PRINCIPAL -->
+        <div id="screen-menu" class="screen active">
+            <h1>🤠 Duelo de Meias 🤠</h1>
+            <p>O jogo de faroeste mais sem noção e divertido para quem tem paranoia com meias perdidas na máquina de lavar!</p>
+            <button class="btn" onclick="showScreen('screen-create')">Criar Sala</button>
+            <br>
+            <button class="btn" onclick="showScreen('screen-join')">Entrar em Sala</button>
+            <div class="sound-controls">
+                <p style="font-size: 0.8rem; opacity: 0.7;">Certifique-se de ter o arquivo <strong>faroeste.mp3</strong> na mesma pasta!</p>
+            </div>
+        </div>
+
+        <!-- TELA 2: CRIAR SALA -->
+        <div id="screen-create" class="screen">
+            <h1>Criar Sala de Duelo</h1>
+            <p>Escolha o nome secreto da sua sala de meias:</p>
+            <input type="text" id="create-room-name" placeholder="Ex: RanchoDoChule">
+            <br>
+            <button class="btn" onclick="createRoom()">Iniciar o Varal</button>
+            <br>
+            <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="showScreen('screen-menu')">Voltar</button>
+        </div>
+
+        <!-- TELA 3: ENTRAR NA SALA -->
+        <div id="screen-join" class="screen">
+            <h1>Entrar no Saloon</h1>
+            <p>Digite o nome da sala criada pelo seu comparsa:</p>
+            <input type="text" id="join-room-name" placeholder="Nome da Sala">
+            <br>
+            <button class="btn" onclick="joinRoom()">Entrar na Disputa</button>
+            <br>
+            <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="showScreen('screen-menu')">Voltar</button>
+        </div>
+
+        <!-- TELA 4: JOGO ROLANDO -->
+        <div id="screen-game" class="screen">
+            <h1 id="room-title">Sala: </h1>
+            <p id="game-instruction">Encontre os pares de meias antes que o xerife apareça!</p>
+            
+            <div class="scoreboard">
+                <span>Pontuação de Meias: <strong id="score">0</strong></span> | 
+                <span>Tempo: <strong id="timer">30</strong>s</span>
+            </div>
+
+            <div class="sock-grid" id="sockGrid">
+                <!-- Gerado por JS -->
+            </div>
+
+            <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="leaveRoom()">Sair do Duelo</button>
+        </div>
+
+        <!-- TELA 5: FIM DE JOGO -->
+        <div id="screen-gameover" class="screen">
+            <h1>Fim de Duelo! 🌵</h1>
+            <p>As meias sumiram na máquina de lavar dimensional.</p>
+            <p>Sua pontuação final de pares certos foi: <strong id="final-score" style="color: var(--accent-gold); font-size: 1.5rem;">0</strong></p>
+            <button class="btn" onclick="restartGame()">Jogar de Novo</button>
+            <br>
+            <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="showScreen('screen-menu')">Menu Principal</button>
+        </div>
+    </div>
+
+    <script>
+        let currentRoom = "";
+        let score = 0;
+        let timeLeft = 30;
+        let timerInterval;
+        let selectedSock = null;
+        let matchedPairs = 0;
+
+        const sockEmojis = ['🧦', '🧦', '🧦', '🧦', '🧦', '🧦']; // 3 pares
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function playMusic() {
+            const audio = document.getElementById('farwestAudio');
+            audio.play().catch(e => console.log("Áudio aguardando interação do usuário:", e));
+        }
+
+        function createRoom() {
+            const roomName = document.getElementById('create-room-name').value.trim();
+            if (!roomName) {
+                alert("Por favor, digite um nome para a sala!");
+                return;
+            }
+            currentRoom = roomName;
+            startGameSession();
+        }
+
+        function joinRoom() {
+            const roomName = document.getElementById('join-room-name').value.trim();
+            if (!roomName) {
+                alert("Por favor, digite o nome da sala para entrar!");
+                return;
+            }
+            currentRoom = roomName;
+            startGameSession();
+        }
+
+        function startGameSession() {
+            playMusic();
+            document.getElementById('room-title').innerText = "Sala: " + currentRoom;
+            showScreen('screen-game');
+            initGameVariables();
+            buildBoard();
+            startTimer();
+        }
+
+        function initGameVariables() {
+            score = 0;
+            timeLeft = 30;
+            matchedPairs = 0;
+            selectedSock = null;
+            document.getElementById('score').innerText = score;
+            document.getElementById('timer').innerText = timeLeft;
+        }
+
+        function buildBoard() {
+            const grid = document.getElementById('sockGrid');
+            grid.innerHTML = '';
+            
+            // Duplicar para formar 3 pares (6 cartas) e misturar
+            let deck = [...sockEmojis].sort(() => Math.random() - 0.5);
+
+            deck.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.classList.add('sock-card');
+                card.dataset.emoji = emoji;
+                card.dataset.index = index;
+                card.innerText = '❓';
+                card.onclick = () => flipCard(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function flipCard(card) {
+            // Se já revelada ou clicada duas vezes na mesma
+            if (card.classList.contains('revealed') || card === selectedSock) return;
+
+            card.innerText = card.dataset.emoji;
+            card.classList.add('revealed');
+
+            if (!selectedSock) {
+                selectedSock = card;
+            } else {
+                const firstCard = selectedSock;
+                const secondCard = card;
+                selectedSock = null;
+
+                if (firstCard.dataset.emoji === secondCard.dataset.emoji) {
+                    score += 10;
+                    matchedPairs++;
+                    document.getElementById('score').innerText = score;
+
+                    // Se encontrou todos os 3 pares, gera um novo tabuleiro no mesmo jogo
+                    if (matchedPairs === 3) {
+                        setTimeout(() => {
+                            matchedPairs = 0;
+                            buildBoard();
+                        }, 600);
+                    }
+                } else {
+                    // Errou o par, vira de volta após um pequeno delay
+                    setTimeout(() => {
+                        firstCard.innerText = '❓';
+                        firstCard.classList.remove('revealed');
+                        secondCard.innerText = '❓';
+                        secondCard.classList.remove('revealed');
+                    }, 500);
+                }
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            document.getElementById('final-score').innerText = score;
+            showScreen('screen-gameover');
+        }
+
+        function leaveRoom() {
+            clearInterval(timerInterval);
+            const audio = document.getElementById('farwestAudio');
+            audio.pause();
+            audio.currentTime = 0;
+            showScreen('screen-menu');
+        }
+
+        function restartGame() {
+            startGameSession();
+        }
+    </script>
+</body>
+</html>
