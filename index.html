@@ -71,6 +71,18 @@
             box-shadow: 0 0 #b8973e;
         }
 
+        .btn-start {
+            background-color: #2e7d32;
+            color: #fff;
+            font-size: 1.3rem;
+            padding: 15px 30px;
+            box-shadow: 0 4px #1b4d20;
+        }
+
+        .btn-start:active {
+            box-shadow: 0 0 #1b4d20;
+        }
+
         input[type="text"] {
             padding: 12px;
             font-size: 1.1rem;
@@ -96,6 +108,13 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin: 15px 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .sock-grid.active-board {
+            pointer-events: auto;
+            opacity: 1;
         }
 
         .sock-card {
@@ -171,7 +190,7 @@
             <p>Qual o nome da sala (para jogar em grupo)?</p>
             <input type="text" id="room-name" placeholder="Nome da Sala (Ex: RanchoDoChule)">
             <br>
-            <button class="btn" onclick="joinGameSession()">Entrar na Disputa</button>
+            <button class="btn" onclick="prepareGameSession()">Ir para a Sala</button>
             <br>
             <button class="btn" style="background-color: #8b3a3a; color: #fff;" onclick="showScreen('screen-menu')">Voltar</button>
         </div>
@@ -179,7 +198,7 @@
         <!-- TELA 3: JOGO ROLANDO -->
         <div id="screen-game" class="screen">
             <h1 id="room-title">Sala: </h1>
-            <p id="game-instruction">Encontre os pares de roupas íntimas e garanta sua pontuação!</p>
+            <p id="game-instruction">Aperte START quando estiver pronto para o duelo!</p>
             
             <div class="scoreboard-panel">
                 <div>
@@ -193,6 +212,11 @@
                         <!-- Lista de jogadores injetada via JS -->
                     </div>
                 </div>
+            </div>
+
+            <!-- BOTÃO DE START -->
+            <div style="margin: 15px 0;">
+                <button id="start-btn" class="btn btn-start" onclick="startGamePlay()">▶ START DUELO</button>
             </div>
 
             <div class="sock-grid" id="sockGrid">
@@ -224,6 +248,7 @@
         let selectedSock = null;
         let matchedPairs = 0;
         let isChecking = false;
+        let gameStarted = false;
 
         const laundryTypes = [
             '🩲', '👙', '👚', '🧦', '🩳', '🎀', '⭐🧦', '💀🩲'
@@ -239,7 +264,7 @@
             audio.play().catch(e => console.log("Áudio aguardando interação:", e));
         }
 
-        function joinGameSession() {
+        function prepareGameSession() {
             playerName = document.getElementById('player-name').value.trim();
             currentRoom = document.getElementById('room-name').value.trim();
 
@@ -253,21 +278,32 @@
             document.getElementById('my-name-display').innerText = playerName;
             
             showScreen('screen-game');
-            initGameVariables();
+            resetGameSessionState();
             buildBoard();
-            startTimer();
             startSync();
         }
 
-        function initGameVariables() {
+        function resetGameSessionState() {
             score = 0;
             timeLeft = 60;
             matchedPairs = 0;
             selectedSock = null;
             isChecking = false;
+            gameStarted = false;
             document.getElementById('score').innerText = score;
             document.getElementById('timer').innerText = timeLeft;
+            document.getElementById('start-btn').style.display = 'inline-block';
+            document.getElementById('sockGrid').classList.remove('active-board');
+            document.getElementById('game-instruction').innerText = "Aperte START quando estiver pronto para o duelo!";
             updateLocalStorageScore();
+        }
+
+        function startGamePlay() {
+            gameStarted = true;
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('sockGrid').classList.add('active-board');
+            document.getElementById('game-instruction').innerText = "Encontre os pares de roupas íntimas antes que o tempo acabe!";
+            startTimer();
         }
 
         function buildBoard() {
@@ -288,7 +324,7 @@
         }
 
         function flipCard(card) {
-            if (isChecking || card.classList.contains('revealed') || card === selectedSock) return;
+            if (!gameStarted || isChecking || card.classList.contains('revealed') || card === selectedSock) return;
 
             card.innerText = card.dataset.sock;
             card.classList.add('revealed');
@@ -345,7 +381,6 @@
                 let container = document.getElementById('players-container');
                 container.innerHTML = '';
 
-                // Ordena por pontuação
                 let sortedPlayers = Object.entries(roomPlayers).sort((a, b) => b[1] - a[1]);
 
                 sortedPlayers.forEach(([name, pts]) => {
@@ -369,6 +404,7 @@
         }
 
         function endGame() {
+            gameStarted = false;
             clearInterval(syncInterval);
             let roomsData = JSON.parse(localStorage.getItem('duelo_meias_rooms')) || {};
             let roomPlayers = roomsData[currentRoom] || {};
