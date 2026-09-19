@@ -93,8 +93,8 @@
 
         .sock-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
             margin: 20px 0;
         }
 
@@ -102,10 +102,15 @@
             background-color: #3d2215;
             border: 3px dashed var(--accent-gold);
             border-radius: 8px;
-            padding: 20px;
-            font-size: 2.5rem;
+            padding: 15px;
+            font-size: 2.2rem;
             cursor: pointer;
             transition: transform 0.2s, background-color 0.2s;
+            user-select: none;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .sock-card:hover {
@@ -170,11 +175,11 @@
         <!-- TELA 4: JOGO ROLANDO -->
         <div id="screen-game" class="screen">
             <h1 id="room-title">Sala: </h1>
-            <p id="game-instruction">Encontre os pares de meias antes que o xerife apareça!</p>
+            <p id="game-instruction">Encontre os pares de meias antes que o tempo acabe!</p>
             
             <div class="scoreboard">
-                <span>Pontuação de Meias: <strong id="score">0</strong></span> | 
-                <span>Tempo: <strong id="timer">30</strong>s</span>
+                <span>Pontuação: <strong id="score">0</strong></span> | 
+                <span>Tempo: <strong id="timer">45</strong>s</span>
             </div>
 
             <div class="sock-grid" id="sockGrid">
@@ -198,12 +203,22 @@
     <script>
         let currentRoom = "";
         let score = 0;
-        let timeLeft = 30;
+        let timeLeft = 45;
         let timerInterval;
         let selectedSock = null;
         let matchedPairs = 0;
+        let isChecking = false;
 
-        const sockEmojis = ['🧦', '🧦', '🧦', '🧦', '🧦', '🧦']; // 3 pares
+        // Diferentes estampas e cores de meias para formar os pares
+        const sockBaseList = ['🧦', '🧦', '🧦', '🧦', '🧦', '🧦'];
+        const sockTypes = [
+            '🔴🧦', // Meia vermelha listrada
+            '🔵🧦', // Meia azul de bolinhas
+            '⭐🧦', // Meia de xerife com estrela
+            '💀🧦', // Meia do fora-da-lei
+            '💚🧦', // Meia verde fedida
+            '💛🧦'  // Meia amarela de ouro
+        ];
 
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -246,9 +261,10 @@
 
         function initGameVariables() {
             score = 0;
-            timeLeft = 30;
+            timeLeft = 45;
             matchedPairs = 0;
             selectedSock = null;
+            isChecking = false;
             document.getElementById('score').innerText = score;
             document.getElementById('timer').innerText = timeLeft;
         }
@@ -257,13 +273,14 @@
             const grid = document.getElementById('sockGrid');
             grid.innerHTML = '';
             
-            // Duplicar para formar 3 pares (6 cartas) e misturar
-            let deck = [...sockEmojis].sort(() => Math.random() - 0.5);
+            // Pega 4 tipos diferentes de meias e duplica para formar 8 cartas (4 pares)
+            let selectedTypes = [...sockTypes].sort(() => Math.random() - 0.5).slice(0, 4);
+            let deck = [...selectedTypes, ...selectedTypes].sort(() => Math.random() - 0.5);
 
-            deck.forEach((emoji, index) => {
+            deck.forEach((sockType, index) => {
                 const card = document.createElement('div');
                 card.classList.add('sock-card');
-                card.dataset.emoji = emoji;
+                card.dataset.sock = sockType;
                 card.dataset.index = index;
                 card.innerText = '❓';
                 card.onclick = () => flipCard(card);
@@ -272,30 +289,31 @@
         }
 
         function flipCard(card) {
-            // Se já revelada ou clicada duas vezes na mesma
-            if (card.classList.contains('revealed') || card === selectedSock) return;
+            if (isChecking || card.classList.contains('revealed') || card === selectedSock) return;
 
-            card.innerText = card.dataset.emoji;
+            card.innerText = card.dataset.sock;
             card.classList.add('revealed');
 
             if (!selectedSock) {
                 selectedSock = card;
             } else {
+                isChecking = true;
                 const firstCard = selectedSock;
                 const secondCard = card;
                 selectedSock = null;
 
-                if (firstCard.dataset.emoji === secondCard.dataset.emoji) {
-                    score += 10;
+                if (firstCard.dataset.sock === secondCard.dataset.sock) {
+                    score += 15;
                     matchedPairs++;
                     document.getElementById('score').innerText = score;
+                    isChecking = false;
 
-                    // Se encontrou todos os 3 pares, gera um novo tabuleiro no mesmo jogo
-                    if (matchedPairs === 3) {
+                    // Se encontrou todos os 4 pares do tabuleiro, gera um novo conjunto
+                    if (matchedPairs === 4) {
                         setTimeout(() => {
                             matchedPairs = 0;
                             buildBoard();
-                        }, 600);
+                        }, 500);
                     }
                 } else {
                     // Errou o par, vira de volta após um pequeno delay
@@ -304,7 +322,8 @@
                         firstCard.classList.remove('revealed');
                         secondCard.innerText = '❓';
                         secondCard.classList.remove('revealed');
-                    }, 500);
+                        isChecking = false;
+                    }, 700);
                 }
             }
         }
